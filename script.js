@@ -41,11 +41,9 @@ const cityCoordinates = {
     "Salt Lake City": [-111.8910, 40.7608],
     "Beijing": [116.4074, 39.9042],
     "Vancouver": [-123.1216, 49.2827],
-    "London": [-0.1278, 51.5074],
     "Sochi": [39.7260, 43.6028],
     "Rio de Janeiro": [-43.1729, -22.9068],
-    "Pyeongchang": [128.3306, 37.6381],
-    "Tokyo": [139.6917, 35.6895]
+    "Pyeongchang": [128.3306, 37.6381]
 };
 
 d3.csv('./athlete_events.csv').then(data => {
@@ -126,9 +124,9 @@ function scene1(data) {
             .attr("stroke-width", 1)
             .on("mouseover", function(event, d) {
                 tooltip.html(`<strong>${d.city}, ${d.year}</strong><br>
-                              Events: ${d.Events}<br>
-                              Countries: ${d.Countries}<br>
-                              Women Participated: ${d.Women ? 'Yes' : 'No'}`)
+                              Events: ${d.events}<br>
+                              Countries: ${d.countries}<br>
+                              Women Participated: ${d.women ? 'Yes' : 'No'}`)
                     .style("left", (event.pageX + 5) + "px")
                     .style("top", (event.pageY - 28) + "px")
                     .style("visibility", "visible");
@@ -156,7 +154,6 @@ function scene1(data) {
     });
 }
 
-
 function scene2(data) {
     d3.select('#visualization').html(''); // Clear previous scene
     d3.select('#visualization').append('h1').text('Participation Trends Over the Years');
@@ -168,4 +165,3 @@ function scene3(data) {
     d3.select('#visualization').append('h1').text('Detailed Exploration: Basketball');
     // Add more D3 code for the detailed exploration visualization
 }
-
