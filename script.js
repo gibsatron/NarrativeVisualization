@@ -96,7 +96,9 @@ function initVisualization(data) {
     const scenes = [
         scene1,
         scene2,
-        scene3
+        scene3,
+        scene4,
+        scene5
     ];
 
     // Initial scene setup
@@ -117,18 +119,26 @@ function scene1(data) {
     Promise.all([
         d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
     ]).then(([world]) => {
+        console.log("World GeoJSON:", world); // Log world data to check if it is loaded correctly
+
         // Draw the map
-        svg.append("g")
+        const map = svg.append("g")
             .selectAll("path")
             .data(world.features)
             .enter().append("path")
             .attr("fill", "#ccc")
             .attr("d", path);
 
+        console.log("Map Paths:", map); // Log to check if map paths are created
+
+        // Log data to verify circles data
+        const filteredData = data.filter(d => d.longitude && d.latitude);
+        console.log("Filtered Data for Circles:", filteredData);
+
         // Add circles for the Olympic Games
-        svg.append("g")
+        const circles = svg.append("g")
             .selectAll("circle")
-            .data(data.filter(d => d.longitude && d.latitude)) // Filter out entries without coordinates
+            .data(filteredData) // Filter out entries without coordinates
             .enter().append("circle")
             .attr("cx", d => projection([d.longitude, d.latitude])[0])
             .attr("cy", d => projection([d.longitude, d.latitude])[1])
@@ -149,6 +159,8 @@ function scene1(data) {
                 tooltip.style("visibility", "hidden");
             });
 
+        console.log("Circles:", circles); // Log to check if circles are created
+
         // Annotate the first games
         svg.append("text")
             .attr("x", projection([23.7275, 37.9838])[0])
@@ -165,9 +177,10 @@ function scene1(data) {
             .attr("font-size", "12px")
             .attr("text-anchor", "middle")
             .text("First Winter Olympics (1924)");
+    }).catch(error => {
+        console.error('Error loading GeoJSON:', error);
     });
 }
-
 function scene2(data) {
     d3.select('#visualization').html(''); // Clear previous scene
     d3.select('#visualization').append('h1').text('Participation Trends Over the Years');
@@ -176,6 +189,18 @@ function scene2(data) {
 
 function scene3(data) {
     d3.select('#visualization').html(''); // Clear previous scene
-    d3.select('#visualization').append('h1').text('Detailed Exploration: Basketball');
+    d3.select('#visualization').append('h1').text('Medal Distribution By Country');
+    // Add more D3 code for the detailed exploration visualization
+}
+
+function scene4(data) {
+    d3.select('#visualization').html(''); // Clear previous scene
+    d3.select('#visualization').append('h1').text('Women in the Olympics');
+    // Add more D3 code for the detailed exploration visualization
+}
+
+function scene5(data) {
+    d3.select('#visualization').html(''); // Clear previous scene
+    d3.select('#visualization').append('h1').text('User Exploration of Olympic Games');
     // Add more D3 code for the detailed exploration visualization
 }
