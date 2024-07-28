@@ -1,3 +1,19 @@
+const width = 960;
+const height = 600;
+
+const svg = d3.select("#visualization").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+const projection = d3.geoNaturalEarth1()
+    .scale(170)
+    .translate([width / 2, height / 2]);
+
+const path = d3.geoPath().projection(projection);
+
+const tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip");
+
 const cityCoordinates = {
     "Athens": [23.7275, 37.9838],
     "Chamonix": [6.8466, 46.5206],
@@ -36,18 +52,18 @@ d3.csv('./athlete_events.csv').then(data => {
     // Preprocess data
     data.forEach(d => {
         d.id = +d.ID;
-        d.sex = +d.Sex;
+        d.sex = d.Sex;
         d.year = +d.Year;
         d.age = +d.Age;
         d.height = +d.Height;
         d.weight = +d.Weight;
-        d.team = +d.Team;
-        d.games = +d.Games;
-        d.season = +d.Season;
-        d.city = +d.City;
-        d.sport = +d.Sport;
-        d.event = +d.Event;
-        d.medal = +d.Medal;
+        d.team = d.Team;
+        d.games = d.Games;
+        d.season = d.Season;
+        d.city = d.City;
+        d.sport = d.Sport;
+        d.event = d.Event;
+        d.medal = d.Medal;
 
         // Add coordinates from lookup table
         if (cityCoordinates[d.city]) {
