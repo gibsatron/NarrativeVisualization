@@ -6,11 +6,14 @@
     <title>Olympic Games Visualization</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://unpkg.com/topojson@3"></script>
 </head>
 <body>
     <div id="visualization"></div>
-    <button id="nextButton">Next</button>
+    <div>
+        <label for="year">Select Year:</label>
+        <input type="range" id="year" name="year" min="1896" max="2020" step="4" value="2020">
+        <span id="year-label">2020</span>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
