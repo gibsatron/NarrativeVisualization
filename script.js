@@ -6,38 +6,36 @@ const svg = d3.select("#visualization").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-svg.append("text")
-    .attr("x", (width / 2))             
-    .attr("y", margin.top / 2)
-    .attr("text-anchor", "middle")  
-    .style("font-size", "24px") 
-    .style("text-decoration", "underline")  
-    .text("Gold Medals vs. Number of Participants");
-
-svg.append("text")
-    .attr("transform", `translate(${width / 2}, ${height - margin.bottom / 3})`)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .text("Number of Participants");
-
-svg.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", margin.left / 3)
-    .attr("x", 0 - (height / 2))
-    .attr("dy", "1em")
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .text("Number of Gold Medals");
-
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip");
 
 d3.csv('./athlete_events.csv').then(data => {
-    // Preprocess data
     const medalData = preprocessData(data);
+    const scenes = [scene1, scene2, scene3];
+    let currentScene = 0;
 
-    // Initialize the visualization
-    initVisualization(medalData);
+    initControls(medalData);
+    scenes[currentScene](medalData);
+
+    d3.select("#scene1").on("click", () => {
+        currentScene = 0;
+        scenes[currentScene](medalData);
+    });
+
+    d3.select("#scene2").on("click", () => {
+        currentScene = 1;
+        scenes[currentScene](medalData);
+    });
+
+    d3.select("#scene3").on("click", () => {
+        currentScene = 2;
+        scenes[currentScene](medalData);
+    });
+
+    d3.select("#year").on("input", function() {
+        d3.select("#year-label").text(this.value);
+        scenes[currentScene](medalData);
+    });
 });
 
 function preprocessData(data) {
@@ -76,9 +74,40 @@ function preprocessData(data) {
     return medalData;
 }
 
-function initVisualization(data) {
-    const countries = [...new Set(data.map(d => d.country))].sort();
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(countries);
+function initControls(data) {
+    d3.select("#year").on("input", function() {
+        d3.select("#year-label").text(this.value);
+    });
+}
+
+function scene1(data) {
+    const year = +d3.select("#year").property("value");
+    svg.selectAll("*").remove();
+
+    svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top / 2)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "24px") 
+        .style("text-decoration", "underline")  
+        .text("Gold Medals vs. Number of Participants");
+
+    svg.append("text")
+        .attr("transform", `translate(${width / 2}, ${height - margin.bottom / 3})`)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Number of Participants");
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", margin.left / 3)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Number of Gold Medals");
+
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...new Set(data.map(d => d.country))]);
 
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
     const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -86,44 +115,10 @@ function initVisualization(data) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const yearInput = d3.select("#year");
-    const yearLabel = d3.select("#year-label");
-
-    const countrySelect = d3.select("#countries")
-        .selectAll("option")
-        .data(countries)
-        .enter()
-        .append("option")
-        .text(d => d)
-        .attr("value", d => d)
-        .property("selected", d => d === "USA");
-
-    yearInput.on("input", function() {
-        const selectedYear = +this.value;
-        yearLabel.text(selectedYear);
-        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
-        updateVisualization(data, selectedYear, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale);
-    });
-
-    countrySelect.on("change", function() {
-        const selectedYear = +yearInput.property("value");
-        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
-        updateVisualization(data, selectedYear, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale);
-    });
-
-    const initialYear = +yearInput.property("value");
-    const initialCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
-    updateVisualization(data, initialYear, initialCountries, xScale, yScale, xAxis, yAxis, colorScale);
-}
-
-function updateVisualization(data, year, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale) {
-    const filteredData = data.filter(d => d.year === year && selectedCountries.includes(d.country));
+    const filteredData = data.filter(d => d.year === year);
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.golds)]);
-
-    svg.selectAll(".x-axis").remove();
-    svg.selectAll(".y-axis").remove();
 
     svg.append("g")
         .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -177,3 +172,15 @@ function updateVisualization(data, year, selectedCountries, xScale, yScale, xAxi
             .text(`USA: ${usData.totalMedals} Medals (${(usData.medalEfficiency * 100).toFixed(2)}%)`);
     }
 }
+
+function scene2(data) {
+    const year = +d3.select("#year").property("value");
+    svg.selectAll("*").remove();
+
+    svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top / 2)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "24px") 
+        .style("text-decoration", "underline")  
+        .text("Scene 2 Title");
