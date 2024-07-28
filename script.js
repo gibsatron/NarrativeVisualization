@@ -15,14 +15,6 @@ d3.csv('./athlete_events.csv').then(data => {
         d.event = d.Event;
         d.medal = d.Medal;
 
-        // Add coordinates from lookup table
-        if (cityCoordinates[d.city]) {
-            d.longitude = cityCoordinates[d.city][0];
-            d.latitude = cityCoordinates[d.city][1];
-        } else {
-            d.longitude = null;
-            d.latitude = null;
-        }
     });
 
     // Log data to verify preprocessing
