@@ -4,15 +4,17 @@ const height = 600;
 const svg = d3.select("#visualization").append("svg")
     .attr("width", width)
     .attr("height", height)
-    .style("background", "lightgrey");
-console.log(svg);
+    .style("background", "lightgrey"); // Temporarily add background color
 
 const projection = d3.geoNaturalEarth1()
     .scale(170)
     .translate([width / 2, height / 2]);
 
 const path = d3.geoPath().projection(projection);
-console.log(projection);
+
+console.log("SVG:", svg);
+console.log("Projection:", projection);
+
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip");
 
@@ -87,101 +89,88 @@ d3.csv('./athlete_events.csv').then(data => {
             d.latitude = null;
         }
     });
-    console.log(data);
+
+    // Log data to verify preprocessing
+    console.log("Processed Data:", data);
+
     // Initialize the visualization
     initVisualization(data);
 });
 
 function initVisualization(data) {
-    let currentScene = 0;
-    const scenes = [
-        scene1,
-        scene2,
-        scene3,
-        scene4,
-        scene5
-    ];
-
-    // Initial scene setup
-    scenes[currentScene](data);
-
-    // Navigation
-    d3.select('#nextButton')
-        .on('click', () => {
-            currentScene = (currentScene + 1) % scenes.length;
-            scenes[currentScene](data);
-        });
+    scene1(data); // Directly call the first scene for debugging
 }
 
 function scene1(data) {
     d3.select('#visualization').html(''); // Clear previous scene
     d3.select('#visualization').append('h1').text('Overview of Olympic Games');
 
-    Promise.all([
-        d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
-    ]).then(([world]) => {
-        console.log("World GeoJSON:", world); // Log world data to check if it is loaded correctly
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+        .then(world => {
+            console.log("World GeoJSON:", world); // Log world data to check if it is loaded correctly
 
-        // Draw the map
-        const map = svg.append("g")
-            .selectAll("path")
-            .data(world.features)
-            .enter().append("path")
-            .attr("fill", "#ccc")
-            .attr("d", path);
+            // Draw the map
+            const map = svg.append("g")
+                .selectAll("path")
+                .data(world.features)
+                .enter().append("path")
+                .attr("fill", "#ccc")
+                .attr("d", path);
 
-        console.log("Map Paths:", map); // Log to check if map paths are created
+            console.log("Map Paths:", map); // Log to check if map paths are created
 
-        // Log data to verify circles data
-        const filteredData = data.filter(d => d.longitude && d.latitude);
-        console.log("Filtered Data for Circles:", filteredData);
+            // Log data to verify circles data
+            const filteredData = data.filter(d => d.longitude && d.latitude);
+            console.log("Filtered Data for Circles:", filteredData);
 
-        // Add circles for the Olympic Games
-        const circles = svg.append("g")
-            .selectAll("circle")
-            .data(filteredData) // Filter out entries without coordinates
-            .enter().append("circle")
-            .attr("cx", d => projection([d.longitude, d.latitude])[0])
-            .attr("cy", d => projection([d.longitude, d.latitude])[1])
-            .attr("r", 5)
-            .attr("fill", d => d.season === 'Summer' ? "orange" : "blue")
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 1)
-            .on("mouseover", function(event, d) {
-                tooltip.html(`<strong>${d.city}, ${d.year}</strong><br>
-                              Events: ${d.event}<br>
-                              Countries: ${d.team}<br>
-                              Women Participated: ${d.sex === 'F' ? 'Yes' : 'No'}`)
-                    .style("left", (event.pageX + 5) + "px")
-                    .style("top", (event.pageY - 28) + "px")
-                    .style("visibility", "visible");
-            })
-            .on("mouseout", function() {
-                tooltip.style("visibility", "hidden");
-            });
+            // Add circles for the Olympic Games
+            const circles = svg.append("g")
+                .selectAll("circle")
+                .data(filteredData) // Filter out entries without coordinates
+                .enter().append("circle")
+                .attr("cx", d => projection([d.longitude, d.latitude])[0])
+                .attr("cy", d => projection([d.longitude, d.latitude])[1])
+                .attr("r", 5)
+                .attr("fill", d => d.season === 'Summer' ? "orange" : "blue")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1)
+                .on("mouseover", function(event, d) {
+                    tooltip.html(`<strong>${d.city}, ${d.year}</strong><br>
+                                  Events: ${d.event}<br>
+                                  Countries: ${d.team}<br>
+                                  Women Participated: ${d.sex === 'F' ? 'Yes' : 'No'}`)
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY - 28) + "px")
+                        .style("visibility", "visible");
+                })
+                .on("mouseout", function() {
+                    tooltip.style("visibility", "hidden");
+                });
 
-        console.log("Circles:", circles); // Log to check if circles are created
+            console.log("Circles:", circles); // Log to check if circles are created
 
-        // Annotate the first games
-        svg.append("text")
-            .attr("x", projection([23.7275, 37.9838])[0])
-            .attr("y", projection([23.7275, 37.9838])[1] - 10)
-            .attr("fill", "black")
-            .attr("font-size", "12px")
-            .attr("text-anchor", "middle")
-            .text("First Summer Olympics (1896)");
+            // Annotate the first games
+            svg.append("text")
+                .attr("x", projection([23.7275, 37.9838])[0])
+                .attr("y", projection([23.7275, 37.9838])[1] - 10)
+                .attr("fill", "black")
+                .attr("font-size", "12px")
+                .attr("text-anchor", "middle")
+                .text("First Summer Olympics (1896)");
 
-        svg.append("text")
-            .attr("x", projection([6.8466, 46.5206])[0])
-            .attr("y", projection([6.8466, 46.5206])[1] - 10)
-            .attr("fill", "black")
-            .attr("font-size", "12px")
-            .attr("text-anchor", "middle")
-            .text("First Winter Olympics (1924)");
-    }).catch(error => {
-        console.error('Error loading GeoJSON:', error);
-    });
+            svg.append("text")
+                .attr("x", projection([6.8466, 46.5206])[0])
+                .attr("y", projection([6.8466, 46.5206])[1] - 10)
+                .attr("fill", "black")
+                .attr("font-size", "12px")
+                .attr("text-anchor", "middle")
+                .text("First Winter Olympics (1924)");
+        })
+        .catch(error => {
+            console.error('Error loading GeoJSON:', error);
+        });
 }
+
 function scene2(data) {
     d3.select('#visualization').html(''); // Clear previous scene
     d3.select('#visualization').append('h1').text('Participation Trends Over the Years');
