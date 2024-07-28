@@ -27,7 +27,9 @@ Object.keys(regions).forEach(region => {
 });
 
 d3.csv('./athlete_events.csv').then(data => {
+    console.log("Raw Data:", data); // Debugging line
     const medalData = preprocessData(data);
+    console.log("Processed Medal Data:", medalData); // Debugging line
     const scenes = [scene1];
     let currentScene = 0;
 
@@ -49,6 +51,8 @@ d3.csv('./athlete_events.csv').then(data => {
     function updateScene() {
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
+        console.log("Selected Year:", selectedYear); // Debugging line
+        console.log("Selected Regions:", selectedRegions); // Debugging line
         scenes[currentScene](medalData, selectedYear, selectedRegions);
     }
 });
@@ -151,6 +155,8 @@ function scene1(data, selectedYear, selectedRegions) {
     const yAxis = d3.axisLeft(yScale);
 
     const filteredData = data.filter(d => d.year === selectedYear && selectedRegions.includes(d.region));
+
+    console.log("Filtered Data:", filteredData); // Debugging line
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.golds)]);
