@@ -98,6 +98,24 @@ function preprocessData(data) {
     return medalData;
 }
 
+function initControls(data) {
+    const regionOptions = Object.keys(regions);
+    const regionFilters = d3.select("#region-filters")
+        .selectAll("label")
+        .data(regionOptions)
+        .enter()
+        .append("label");
+
+    regionFilters.append("input")
+        .attr("type", "checkbox")
+        .attr("class", "region-filter")
+        .attr("value", d => d)
+        .property("checked", true);
+
+    regionFilters.append("span")
+        .text(d => d);
+}
+
 function scene1(data, selectedYear, selectedRegions) {
     svg.selectAll("*").remove();
 
