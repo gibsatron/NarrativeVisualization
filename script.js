@@ -224,3 +224,100 @@ function scene1(data, selectedYear, selectedRegions) {
             .text(`USA`);
     }
 }
+function scene2(data, selectedYear, selectedRegions) {
+    svg.selectAll("*").remove();
+
+    svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", margin.top / 2)
+        .attr("text-anchor", "middle")  
+        .style("font-size", "24px") 
+        .style("text-decoration", "underline")  
+        .text("Female Participation vs. Number of Participants");
+
+    svg.append("text")
+        .attr("transform", `translate(${width / 2}, ${height - margin.bottom / 3})`)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Number of Participants");
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", margin.left / 3)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Female Participation (%)");
+
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(Object.keys(regions));
+
+    const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
+    const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+
+    // Set static domains based on the entire dataset
+    const maxParticipants = d3.max(data, d => d.participants);
+    const maxFemaleParticipation = 100; // percentage
+
+    xScale.domain([0, maxParticipants * 1.1]); // Add buffer to the max value
+    yScale.domain([0, maxFemaleParticipation]);
+
+    const xAxis = d3.axisBottom(xScale);
+    const yAxis = d3.axisLeft(yScale);
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .attr("class", "x-axis")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .attr("class", "y-axis")
+        .call(yAxis);
+
+    const filteredData = data.filter(d => d.year === selectedYear && selectedRegions.includes(d.region));
+
+    console.log("Filtered Data:", filteredData); // Debugging line
+
+    const circles = svg.selectAll(".circle").data(filteredData, d => d.noc);
+
+    circles.exit().remove();
+
+    circles.enter().append("circle")
+        .attr("class", "circle")
+        .attr("cx", d => xScale(d.participants))
+        .attr("cy", d => yScale(d.femaleParticipationPercentage))
+        .attr("r", 5)
+        .attr("fill", d => colorScale(d.region))
+        .on("mouseover", function(event, d) {
+            tooltip.html(`<strong>${d.noc}</strong><br>
+                          Year: ${d.year}<br>
+                          Participants: ${d.participants}<br>
+                          Female Participants: ${d.femaleParticipants}<br>
+                          Female Participation: ${d.femaleParticipationPercentage.toFixed(2)}%`)
+                .style("left", (event.pageX + 5) + "px")
+                .style("top", (event.pageY - 28) + "px")
+                .style("visibility", "visible");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
+
+    circles
+        .attr("cx", d => xScale(d.participants))
+        .attr("cy", d => yScale(d.femaleParticipationPercentage))
+        .attr("fill", d => colorScale(d.region));
+
+    // Annotations
+    const usData = filteredData.find(d => d.noc === "USA");
+    if (usData) {
+        svg.append("text")
+            .attr("x", xScale(usData.participants))
+            .attr("y", yScale(usData.femaleParticipationPercentage) - 10)
+            .attr("fill", "red")
+            .attr("font-size", "12px")
+            .attr("text-anchor", "middle")
+            .text(`USA: ${usData.femaleParticipationPercentage.toFixed(2)}% Female Participation`);
+    }
+}
+
