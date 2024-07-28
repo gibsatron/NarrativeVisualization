@@ -30,7 +30,7 @@ d3.csv('./athlete_events.csv').then(data => {
     console.log("Raw Data:", data); // Debugging line
     const medalData = preprocessData(data);
     console.log("Processed Medal Data:", medalData); // Debugging line
-    const scenes = [scene1];
+    const scenes = [scene1, scene2];
     let currentScene = 0;
 
     initControls(medalData);
