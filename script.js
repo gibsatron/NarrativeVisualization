@@ -221,6 +221,6 @@ function scene1(data, selectedYear, selectedRegions) {
             .attr("fill", "red")
             .attr("font-size", "12px")
             .attr("text-anchor", "middle")
-            .text(`USA: #1 Gold Medal Count #1 Medal Efficiency`);
+            .text(`USA`);
     }
 }
