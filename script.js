@@ -4,13 +4,14 @@ const height = 600;
 const svg = d3.select("#visualization").append("svg")
     .attr("width", width)
     .attr("height", height);
+console.log(svg);
 
 const projection = d3.geoNaturalEarth1()
     .scale(170)
     .translate([width / 2, height / 2]);
 
 const path = d3.geoPath().projection(projection);
-
+console.log(projection);
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip");
 
