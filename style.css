@@ -7,15 +7,10 @@ body {
     position: relative;
 }
 
-#visualization svg {
-    background: lightgrey; /* Temporarily add background color */
-}
-
 .tooltip {
     position: absolute;
     text-align: center;
-    width: 120px;
-    height: auto;
+    width: 150px;
     padding: 5px;
     font: 12px sans-serif;
     background: lightsteelblue;
