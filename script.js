@@ -98,6 +98,7 @@ function preprocessData(data) {
             if (year !== "region") {
                 medalData.push({
                     noc,
+                    country: countryYearData[noc].team,
                     region: countryYearData[noc].region,
                     year: +year,
                     participants: countryYearData[noc][year].participants,
@@ -198,7 +199,7 @@ function scene1(data, selectedYear, selectedRegions) {
         .attr("r", 5)
         .attr("fill", d => colorScale(d.region))
         .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.noc}</strong><br>
+            tooltip.html(`<strong>${d.country}</strong><br>
                           Year: ${d.year}<br>
                           Participants: ${d.participants}<br>
                           Female Participants: ${d.femaleParticipants}<br>
@@ -297,7 +298,7 @@ function scene2(data, selectedYear, selectedRegions) {
         .attr("r", 5)
         .attr("fill", d => colorScale(d.region))
         .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.noc}</strong><br>
+            tooltip.html(`<strong>${d.country}</strong><br>
                           Year: ${d.year}<br>
                           Participants: ${d.participants}<br>
                           Female Participants: ${d.femaleParticipants}<br>
