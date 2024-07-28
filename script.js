@@ -151,4 +151,30 @@ function scene1(data) {
         // Annotate the first games
         svg.append("text")
             .attr("x", projection([23.7275, 37.9838])[0])
-      
+            .attr("y", projection([23.7275, 37.9838])[1] - 10)
+            .attr("fill", "black")
+            .attr("font-size", "12px")
+            .attr("text-anchor", "middle")
+            .text("First Summer Olympics (1896)");
+
+        svg.append("text")
+            .attr("x", projection([6.8466, 46.5206])[0])
+            .attr("y", projection([6.8466, 46.5206])[1] - 10)
+            .attr("fill", "black")
+            .attr("font-size", "12px")
+            .attr("text-anchor", "middle")
+            .text("First Winter Olympics (1924)");
+    });
+}
+
+function scene2(data) {
+    d3.select('#visualization').html(''); // Clear previous scene
+    d3.select('#visualization').append('h1').text('Participation Trends Over the Years');
+    // Add more D3 code for the participation trends visualization
+}
+
+function scene3(data) {
+    d3.select('#visualization').html(''); // Clear previous scene
+    d3.select('#visualization').append('h1').text('Detailed Exploration: Basketball');
+    // Add more D3 code for the detailed exploration visualization
+}
