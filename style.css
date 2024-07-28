@@ -6,9 +6,11 @@ body {
     margin: 20px;
     position: relative;
 }
+
 #visualization svg {
-    background: lightgrey;
+    background: lightgrey; /* Temporarily add background color */
 }
+
 .tooltip {
     position: absolute;
     text-align: center;
