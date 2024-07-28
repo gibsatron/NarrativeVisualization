@@ -34,7 +34,9 @@ d3.csv('./athlete_events.csv').then(data => {
     let currentScene = 0;
 
     initControls(medalData);
-    scenes[currentScene](medalData);
+    const initialYear = +d3.select("#year").property("value");
+    const initialRegions = Array.from(d3.selectAll(".region-filter").nodes(), d => d.value);
+    scenes[currentScene](medalData, initialYear, initialRegions);
 
     d3.select("#scene1").on("click", () => {
         currentScene = 0;
@@ -149,69 +151,4 @@ function scene1(data, selectedYear, selectedRegions) {
     const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(Object.keys(regions));
 
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
-    const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
-
-    const xAxis = d3.axisBottom(xScale);
-    const yAxis = d3.axisLeft(yScale);
-
-    const filteredData = data.filter(d => d.year === selectedYear && selectedRegions.includes(d.region));
-
-    console.log("Filtered Data:", filteredData); // Debugging line
-
-    xScale.domain([0, d3.max(filteredData, d => d.participants)]);
-    yScale.domain([0, d3.max(filteredData, d => d.golds)]);
-
-    svg.append("g")
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .attr("class", "x-axis")
-        .call(xAxis);
-
-    svg.append("g")
-        .attr("transform", `translate(${margin.left},0)`)
-        .attr("class", "y-axis")
-        .call(yAxis);
-
-    const circles = svg.selectAll(".circle").data(filteredData, d => d.noc);
-
-    circles.exit().remove();
-
-    circles.enter().append("circle")
-        .attr("class", "circle")
-        .attr("cx", d => xScale(d.participants))
-        .attr("cy", d => yScale(d.golds))
-        .attr("r", 5)
-        .attr("fill", d => colorScale(d.region))
-        .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.noc}</strong><br>
-                          Year: ${d.year}<br>
-                          Participants: ${d.participants}<br>
-                          Female Participants: ${d.femaleParticipants}<br>
-                          Gold Medals: ${d.golds}<br>
-                          Total Medals: ${d.totalMedals}<br>
-                          Medal Efficiency: ${(d.medalEfficiency * 100).toFixed(2)}%<br>
-                          Female Participation: ${d.femaleParticipationPercentage.toFixed(2)}%`)
-                .style("left", (event.pageX + 5) + "px")
-                .style("top", (event.pageY - 28) + "px")
-                .style("visibility", "visible");
-        })
-        .on("mouseout", function() {
-            tooltip.style("visibility", "hidden");
-        });
-
-    circles
-        .attr("cx", d => xScale(d.participants))
-        .attr("cy", d => yScale(d.golds))
-        .attr("fill", d => colorScale(d.region));
-
-    // Annotations
-    const usData = filteredData.find(d => d.noc === "USA");
-    if (usData) {
-        svg.append("text")
-            .attr("x", xScale(usData.participants))
-            .attr("y", yScale(usData.golds) - 10)
-            .attr("fill", "red")
-            .attr("font-size", "12px")
-            .attr("text-anchor", "middle")
-            .text(`USA: ${usData.totalMedals} Medals (${(usData.medalEfficiency * 100).toFixed(2)}%)`);
-    }
-}
+    const yScale = d3.scaleLinear().range([height - margin.bottom,
