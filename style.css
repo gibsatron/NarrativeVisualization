@@ -19,3 +19,17 @@ body {
     pointer-events: none;
     visibility: hidden;
 }
+
+#controls {
+    margin: 20px;
+}
+
+#navigation {
+    margin: 20px;
+    text-align: center;
+}
+
+#countries {
+    width: 100%;
+    height: 150px;
+}
