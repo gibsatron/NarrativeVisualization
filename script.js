@@ -9,6 +9,23 @@ const svg = d3.select("#visualization").append("svg")
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip");
 
+const regions = {
+    "Africa": ["ALG", "ANG", "BEN", "BOT", "BUR", "CAF", "CIV", "CMR", "COD", "CPV", "DJI", "EGY", "ERI", "ETH", "GAB", "GHA", "GIN", "KEN", "LES", "LBR", "LBA", "MAD", "MAW", "MLI", "MOZ", "MRI", "MTN", "NAM", "NGR", "NIG", "RWA", "SEN", "SEY", "SLE", "SOM", "SUD", "SWZ", "TAN", "TOG", "TUN", "UGA", "ZAM", "ZIM"],
+    "Asia": ["AFG", "BRN", "BAN", "BHU", "BRU", "CAM", "CHN", "HKG", "INA", "IND", "IRI", "IRQ", "JPN", "JOR", "KAZ", "KGZ", "KOR", "KUW", "LAO", "LIB", "MAC", "MAS", "MDV", "MGL", "MYA", "NEP", "OMA", "PAK", "PHI", "PLE", "PRK", "QAT", "SGP", "SRI", "SYR", "THA", "TLS", "TJK", "TKM", "UAE", "UZB", "VIE", "YEM"],
+    "Europe": ["ALB", "AND", "ARM", "AUT", "AZE", "BLR", "BEL", "BIH", "BUL", "CRO", "CYP", "CZE", "DEN", "EST", "FIN", "FRA", "GEO", "GER", "GRE", "HUN", "ISL", "IRL", "ISR", "ITA", "KOS", "LAT", "LIE", "LTU", "LUX", "MKD", "MLT", "MDA", "MON", "MNE", "NED", "NOR", "POL", "POR", "ROU", "RUS", "SMR", "SRB", "SLO", "ESP", "SWE", "SUI", "SVK", "UKR", "GBR"],
+    "North America": ["ANT", "ARU", "BAH", "BAR", "BER", "BIZ", "CAN", "CAY", "CRC", "CUB", "DOM", "ESA", "GRN", "GUA", "HAI", "HON", "IVB", "JAM", "LCA", "MEX", "NCA", "PAN", "PUR", "SKN", "TTO", "USA"],
+    "Oceania": ["ASA", "AUS", "COK", "FIJ", "FSM", "GUM", "KIR", "MHL", "NRU", "NZL", "PLW", "PNG", "SAM", "SOL", "TGA", "TUV", "VAN"],
+    "South America": ["ARG", "BOL", "BRA", "CHI", "COL", "ECU", "GUY", "PAR", "PER", "SUR", "URU", "VEN"]
+};
+
+// Assign regions to countries
+const countryRegionMap = {};
+Object.keys(regions).forEach(region => {
+    regions[region].forEach(country => {
+        countryRegionMap[country] = region;
+    });
+});
+
 d3.csv('./athlete_events.csv').then(data => {
     const medalData = preprocessData(data);
     const scenes = [scene1, scene2, scene3];
@@ -42,32 +59,36 @@ function preprocessData(data) {
     const countryYearData = {};
 
     data.forEach(d => {
-        if (!countryYearData[d.Team]) {
-            countryYearData[d.Team] = {};
+        const noc = d.NOC;
+        if (!countryYearData[noc]) {
+            countryYearData[noc] = { region: countryRegionMap[noc] || "Other" };
         }
-        if (!countryYearData[d.Team][d.Year]) {
-            countryYearData[d.Team][d.Year] = { participants: 0, golds: 0, totalMedals: 0 };
+        if (!countryYearData[noc][d.Year]) {
+            countryYearData[noc][d.Year] = { participants: 0, golds: 0, totalMedals: 0 };
         }
-        countryYearData[d.Team][d.Year].participants += 1;
+        countryYearData[noc][d.Year].participants += 1;
         if (d.Medal === "Gold") {
-            countryYearData[d.Team][d.Year].golds += 1;
+            countryYearData[noc][d.Year].golds += 1;
         }
         if (d.Medal !== "NA") {
-            countryYearData[d.Team][d.Year].totalMedals += 1;
+            countryYearData[noc][d.Year].totalMedals += 1;
         }
     });
 
     const medalData = [];
-    for (const country in countryYearData) {
-        for (const year in countryYearData[country]) {
-            medalData.push({
-                country,
-                year: +year,
-                participants: countryYearData[country][year].participants,
-                golds: countryYearData[country][year].golds,
-                totalMedals: countryYearData[country][year].totalMedals,
-                medalEfficiency: countryYearData[country][year].totalMedals / countryYearData[country][year].participants
-            });
+    for (const noc in countryYearData) {
+        for (const year in countryYearData[noc]) {
+            if (year !== "region") {
+                medalData.push({
+                    noc,
+                    region: countryYearData[noc].region,
+                    year: +year,
+                    participants: countryYearData[noc][year].participants,
+                    golds: countryYearData[noc][year].golds,
+                    totalMedals: countryYearData[noc][year].totalMedals,
+                    medalEfficiency: countryYearData[noc][year].totalMedals / countryYearData[noc][year].participants
+                });
+            }
         }
     }
 
@@ -75,13 +96,42 @@ function preprocessData(data) {
 }
 
 function initControls(data) {
+    const nocs = [...new Set(data.map(d => d.noc))].sort();
+    const countrySelect = d3.select("#countries")
+        .selectAll("option")
+        .data(nocs)
+        .enter()
+        .append("option")
+        .text(d => d)
+        .attr("value", d => d)
+        .property("selected", true);
+
     d3.select("#year").on("input", function() {
         d3.select("#year-label").text(this.value);
+        updateScene();
     });
+
+    d3.select("#selectAll").on("click", () => {
+        countrySelect.property("selected", true);
+        updateScene();
+    });
+
+    d3.select("#deselectAll").on("click", () => {
+        countrySelect.property("selected", false);
+        updateScene();
+    });
+
+    countrySelect.on("change", updateScene);
+
+    function updateScene() {
+        const selectedYear = +d3.select("#year").property("value");
+        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
+        const currentSceneFunction = scenes[currentScene];
+        currentSceneFunction(data, selectedYear, selectedCountries);
+    }
 }
 
-function scene1(data) {
-    const year = +d3.select("#year").property("value");
+function scene1(data, selectedYear, selectedCountries) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -107,7 +157,7 @@ function scene1(data) {
         .style("font-size", "16px")
         .text("Number of Gold Medals");
 
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...new Set(data.map(d => d.country))]);
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(Object.keys(regions));
 
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
     const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -115,7 +165,7 @@ function scene1(data) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === year);
+    const filteredData = data.filter(d => d.year === selectedYear && selectedCountries.includes(d.noc));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.golds)]);
@@ -130,7 +180,7 @@ function scene1(data) {
         .attr("class", "y-axis")
         .call(yAxis);
 
-    const circles = svg.selectAll(".circle").data(filteredData, d => d.country);
+    const circles = svg.selectAll(".circle").data(filteredData, d => d.noc);
 
     circles.exit().remove();
 
@@ -139,9 +189,9 @@ function scene1(data) {
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.golds))
         .attr("r", 5)
-        .attr("fill", d => colorScale(d.country))
+        .attr("fill", d => colorScale(d.region))
         .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.country}</strong><br>
+            tooltip.html(`<strong>${d.noc}</strong><br>
                           Year: ${d.year}<br>
                           Participants: ${d.participants}<br>
                           Gold Medals: ${d.golds}<br>
@@ -158,10 +208,10 @@ function scene1(data) {
     circles
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.golds))
-        .attr("fill", d => colorScale(d.country));
+        .attr("fill", d => colorScale(d.region));
 
     // Annotations
-    const usData = filteredData.find(d => d.country === "USA");
+    const usData = filteredData.find(d => d.noc === "USA");
     if (usData) {
         svg.append("text")
             .attr("x", xScale(usData.participants))
@@ -173,8 +223,7 @@ function scene1(data) {
     }
 }
 
-function scene2(data) {
-    const year = +d3.select("#year").property("value");
+function scene2(data, selectedYear, selectedCountries) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -188,7 +237,7 @@ function scene2(data) {
     // Add scene-specific content here
     // For example, plot the number of female participants and medals won by women
 
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...new Set(data.map(d => d.country))]);
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(Object.keys(regions));
 
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
     const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -196,7 +245,7 @@ function scene2(data) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === year && d.sex === "F");
+    const filteredData = data.filter(d => d.year === selectedYear && d.sex === "F" && selectedCountries.includes(d.noc));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.totalMedals)]);
@@ -211,7 +260,7 @@ function scene2(data) {
         .attr("class", "y-axis")
         .call(yAxis);
 
-    const circles = svg.selectAll(".circle").data(filteredData, d => d.country);
+    const circles = svg.selectAll(".circle").data(filteredData, d => d.noc);
 
     circles.exit().remove();
 
@@ -220,9 +269,9 @@ function scene2(data) {
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.totalMedals))
         .attr("r", 5)
-        .attr("fill", d => colorScale(d.country))
+        .attr("fill", d => colorScale(d.region))
         .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.country}</strong><br>
+            tooltip.html(`<strong>${d.noc}</strong><br>
                           Year: ${d.year}<br>
                           Participants: ${d.participants}<br>
                           Total Medals: ${d.totalMedals}<br>
@@ -238,10 +287,10 @@ function scene2(data) {
     circles
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.totalMedals))
-        .attr("fill", d => colorScale(d.country));
+        .attr("fill", d => colorScale(d.region));
 
     // Annotations
-    const usData = filteredData.find(d => d.country === "USA");
+    const usData = filteredData.find(d => d.noc === "USA");
     if (usData) {
         svg.append("text")
             .attr("x", xScale(usData.participants))
@@ -253,8 +302,7 @@ function scene2(data) {
     }
 }
 
-function scene3(data) {
-    const year = +d3.select("#year").property("value");
+function scene3(data, selectedYear, selectedCountries) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -268,7 +316,7 @@ function scene3(data) {
     // Add scene-specific content here
     // For example, plot the number of medals won by the USA in key sports like gymnastics and swimming
 
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...new Set(data.map(d => d.country))]);
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(Object.keys(regions));
 
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
     const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -276,7 +324,7 @@ function scene3(data) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === year && (d.sport === "Gymnastics" || d.sport === "Swimming"));
+    const filteredData = data.filter(d => d.year === selectedYear && (d.sport === "Gymnastics" || d.sport === "Swimming") && selectedCountries.includes(d.noc));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.totalMedals)]);
@@ -291,7 +339,7 @@ function scene3(data) {
         .attr("class", "y-axis")
         .call(yAxis);
 
-    const circles = svg.selectAll(".circle").data(filteredData, d => d.country);
+    const circles = svg.selectAll(".circle").data(filteredData, d => d.noc);
 
     circles.exit().remove();
 
@@ -300,9 +348,9 @@ function scene3(data) {
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.totalMedals))
         .attr("r", 5)
-        .attr("fill", d => colorScale(d.country))
+        .attr("fill", d => colorScale(d.region))
         .on("mouseover", function(event, d) {
-            tooltip.html(`<strong>${d.country}</strong><br>
+            tooltip.html(`<strong>${d.noc}</strong><br>
                           Year: ${d.year}<br>
                           Participants: ${d.participants}<br>
                           Total Medals: ${d.totalMedals}<br>
@@ -318,10 +366,10 @@ function scene3(data) {
     circles
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.totalMedals))
-        .attr("fill", d => colorScale(d.country));
+        .attr("fill", d => colorScale(d.region));
 
     // Annotations
-    const usData = filteredData.find(d => d.country === "USA");
+    const usData = filteredData.find(d => d.noc === "USA");
     if (usData) {
         svg.append("text")
             .attr("x", xScale(usData.participants))
