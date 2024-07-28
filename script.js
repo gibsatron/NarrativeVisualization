@@ -1,11 +1,33 @@
 const width = 960;
 const height = 600;
-const margin = { top: 50, right: 30, bottom: 50, left: 70 };
+const margin = { top: 70, right: 30, bottom: 70, left: 100 };
 
 const svg = d3.select("#visualization").append("svg")
     .attr("width", width)
-    .attr("height", height)
-    .style("background", "lightgrey");
+    .attr("height", height);
+
+svg.append("text")
+    .attr("x", (width / 2))             
+    .attr("y", margin.top / 2)
+    .attr("text-anchor", "middle")  
+    .style("font-size", "24px") 
+    .style("text-decoration", "underline")  
+    .text("Gold Medals vs. Number of Participants");
+
+svg.append("text")
+    .attr("transform", `translate(${width / 2}, ${height - margin.bottom / 3})`)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .text("Number of Participants");
+
+svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", margin.left / 3)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .text("Number of Gold Medals");
 
 const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip");
@@ -55,6 +77,9 @@ function preprocessData(data) {
 }
 
 function initVisualization(data) {
+    const countries = [...new Set(data.map(d => d.country))].sort();
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(countries);
+
     const xScale = d3.scaleLinear().range([margin.left, width - margin.right]);
     const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 
@@ -64,17 +89,35 @@ function initVisualization(data) {
     const yearInput = d3.select("#year");
     const yearLabel = d3.select("#year-label");
 
+    const countrySelect = d3.select("#countries")
+        .selectAll("option")
+        .data(countries)
+        .enter()
+        .append("option")
+        .text(d => d)
+        .attr("value", d => d)
+        .property("selected", d => d === "USA");
+
     yearInput.on("input", function() {
         const selectedYear = +this.value;
         yearLabel.text(selectedYear);
-        updateVisualization(data, selectedYear, xScale, yScale, xAxis, yAxis);
+        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
+        updateVisualization(data, selectedYear, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale);
     });
 
-    updateVisualization(data, +yearInput.property("value"), xScale, yScale, xAxis, yAxis);
+    countrySelect.on("change", function() {
+        const selectedYear = +yearInput.property("value");
+        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
+        updateVisualization(data, selectedYear, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale);
+    });
+
+    const initialYear = +yearInput.property("value");
+    const initialCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
+    updateVisualization(data, initialYear, initialCountries, xScale, yScale, xAxis, yAxis, colorScale);
 }
 
-function updateVisualization(data, year, xScale, yScale, xAxis, yAxis) {
-    const filteredData = data.filter(d => d.year === year);
+function updateVisualization(data, year, selectedCountries, xScale, yScale, xAxis, yAxis, colorScale) {
+    const filteredData = data.filter(d => d.year === year && selectedCountries.includes(d.country));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.golds)]);
@@ -101,7 +144,7 @@ function updateVisualization(data, year, xScale, yScale, xAxis, yAxis) {
         .attr("cx", d => xScale(d.participants))
         .attr("cy", d => yScale(d.golds))
         .attr("r", 5)
-        .attr("fill", "blue")
+        .attr("fill", d => colorScale(d.country))
         .on("mouseover", function(event, d) {
             tooltip.html(`<strong>${d.country}</strong><br>
                           Year: ${d.year}<br>
@@ -119,7 +162,8 @@ function updateVisualization(data, year, xScale, yScale, xAxis, yAxis) {
 
     circles
         .attr("cx", d => xScale(d.participants))
-        .attr("cy", d => yScale(d.golds));
+        .attr("cy", d => yScale(d.golds))
+        .attr("fill", d => colorScale(d.country));
 
     // Annotations
     const usData = filteredData.find(d => d.country === "USA");
