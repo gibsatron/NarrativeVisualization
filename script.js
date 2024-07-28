@@ -54,17 +54,7 @@ d3.csv('./athlete_events.csv').then(data => {
         updateScene();
     });
 
-    d3.select("#selectAll").on("click", () => {
-        d3.select("#regions").selectAll("option").property("selected", true);
-        updateScene();
-    });
-
-    d3.select("#deselectAll").on("click", () => {
-        d3.select("#regions").selectAll("option").property("selected", false);
-        updateScene();
-    });
-
-    d3.select("#regions").on("change", updateScene);
+    d3.selectAll(".region-filter").on("change", updateScene);
 });
 
 function preprocessData(data) {
@@ -109,19 +99,25 @@ function preprocessData(data) {
 
 function initControls(data) {
     const regionOptions = Object.keys(regions);
-    const regionSelect = d3.select("#regions")
-        .selectAll("option")
+    const regionFilters = d3.select("#region-filters")
+        .selectAll("label")
         .data(regionOptions)
         .enter()
-        .append("option")
-        .text(d => d)
+        .append("label");
+
+    regionFilters.append("input")
+        .attr("type", "checkbox")
+        .attr("class", "region-filter")
         .attr("value", d => d)
-        .property("selected", true);
+        .property("checked", true);
+
+    regionFilters.append("span")
+        .text(d => d);
 }
 
 function updateScene() {
     const selectedYear = +d3.select("#year").property("value");
-    const selectedRegions = Array.from(d3.select("#regions").selectAll("option").filter(function() { return this.selected; }).nodes(), d => d.value);
+    const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
     const currentSceneFunction = scenes[currentScene];
     currentSceneFunction(data, selectedYear, selectedRegions);
 }
