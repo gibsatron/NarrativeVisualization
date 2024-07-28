@@ -51,8 +51,20 @@ d3.csv('./athlete_events.csv').then(data => {
 
     d3.select("#year").on("input", function() {
         d3.select("#year-label").text(this.value);
-        scenes[currentScene](medalData);
+        updateScene();
     });
+
+    d3.select("#selectAll").on("click", () => {
+        d3.select("#regions").selectAll("option").property("selected", true);
+        updateScene();
+    });
+
+    d3.select("#deselectAll").on("click", () => {
+        d3.select("#regions").selectAll("option").property("selected", false);
+        updateScene();
+    });
+
+    d3.select("#regions").on("change", updateScene);
 });
 
 function preprocessData(data) {
@@ -96,42 +108,25 @@ function preprocessData(data) {
 }
 
 function initControls(data) {
-    const nocs = [...new Set(data.map(d => d.noc))].sort();
-    const countrySelect = d3.select("#countries")
+    const regionOptions = Object.keys(regions);
+    const regionSelect = d3.select("#regions")
         .selectAll("option")
-        .data(nocs)
+        .data(regionOptions)
         .enter()
         .append("option")
         .text(d => d)
         .attr("value", d => d)
         .property("selected", true);
-
-    d3.select("#year").on("input", function() {
-        d3.select("#year-label").text(this.value);
-        updateScene();
-    });
-
-    d3.select("#selectAll").on("click", () => {
-        countrySelect.property("selected", true);
-        updateScene();
-    });
-
-    d3.select("#deselectAll").on("click", () => {
-        countrySelect.property("selected", false);
-        updateScene();
-    });
-
-    countrySelect.on("change", updateScene);
-
-    function updateScene() {
-        const selectedYear = +d3.select("#year").property("value");
-        const selectedCountries = Array.from(countrySelect.filter(function() { return this.selected; }).nodes(), d => d.value);
-        const currentSceneFunction = scenes[currentScene];
-        currentSceneFunction(data, selectedYear, selectedCountries);
-    }
 }
 
-function scene1(data, selectedYear, selectedCountries) {
+function updateScene() {
+    const selectedYear = +d3.select("#year").property("value");
+    const selectedRegions = Array.from(d3.select("#regions").selectAll("option").filter(function() { return this.selected; }).nodes(), d => d.value);
+    const currentSceneFunction = scenes[currentScene];
+    currentSceneFunction(data, selectedYear, selectedRegions);
+}
+
+function scene1(data, selectedYear, selectedRegions) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -165,7 +160,7 @@ function scene1(data, selectedYear, selectedCountries) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === selectedYear && selectedCountries.includes(d.noc));
+    const filteredData = data.filter(d => d.year === selectedYear && selectedRegions.includes(d.region));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.golds)]);
@@ -223,7 +218,7 @@ function scene1(data, selectedYear, selectedCountries) {
     }
 }
 
-function scene2(data, selectedYear, selectedCountries) {
+function scene2(data, selectedYear, selectedRegions) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -245,7 +240,7 @@ function scene2(data, selectedYear, selectedCountries) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === selectedYear && d.sex === "F" && selectedCountries.includes(d.noc));
+    const filteredData = data.filter(d => d.year === selectedYear && d.sex === "F" && selectedRegions.includes(d.region));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.totalMedals)]);
@@ -302,7 +297,7 @@ function scene2(data, selectedYear, selectedCountries) {
     }
 }
 
-function scene3(data, selectedYear, selectedCountries) {
+function scene3(data, selectedYear, selectedRegions) {
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -324,7 +319,7 @@ function scene3(data, selectedYear, selectedCountries) {
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    const filteredData = data.filter(d => d.year === selectedYear && (d.sport === "Gymnastics" || d.sport === "Swimming") && selectedCountries.includes(d.noc));
+    const filteredData = data.filter(d => d.year === selectedYear && (d.sport === "Gymnastics" || d.sport === "Swimming") && selectedRegions.includes(d.region));
 
     xScale.domain([0, d3.max(filteredData, d => d.participants)]);
     yScale.domain([0, d3.max(filteredData, d => d.totalMedals)]);
