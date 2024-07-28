@@ -3,7 +3,8 @@ const height = 600;
 
 const svg = d3.select("#visualization").append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .style("background", "lightgrey");
 console.log(svg);
 
 const projection = d3.geoNaturalEarth1()
