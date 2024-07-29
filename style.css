@@ -1,24 +1,25 @@
 #container {
     display: flex;
-}
-
-#controls {
-    flex: 1;
-    padding: 10px;
+    align-items: flex-start; /* Align items at the start to minimize vertical gaps */
 }
 
 #visualization {
     flex: 2;
+    margin-right: 10px; /* Reduce margin between visualization and description */
 }
 
 #description {
     flex: 1;
-    padding: 10px;
+    padding: 5px; /* Reduce padding inside the description box */
     background-color: #f5f5f5;
     border-left: 1px solid #ccc;
 }
 
+#controls {
+    margin-bottom: 10px; /* Reduce margin below controls */
+}
+
 #buttons {
-    margin-top: 20px;
     text-align: center;
+    margin-top: 10px; /* Reduce margin above buttons */
 }
