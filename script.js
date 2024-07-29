@@ -332,6 +332,7 @@ function scene2(data, selectedYear, selectedRegions) {
             .attr("text-anchor", "middle")
             .text(`USA: \n ${usData.femaleParticipationPercentage.toFixed(2)}% Female Participation`);
     }
+}
 
 
     // Scene 3 function
