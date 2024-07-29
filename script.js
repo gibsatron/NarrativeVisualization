@@ -42,6 +42,7 @@ d3.csv('./athlete_events.csv').then(data => {
 
     d3.select("#scene1").on("click", () => {
         currentScene = 0;
+        d3.select("#sport").style("display", "none"); // Hide sport filter
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
         scenes[currentScene](medalData, selectedYear, selectedRegions);
@@ -49,6 +50,7 @@ d3.csv('./athlete_events.csv').then(data => {
 
     d3.select("#scene2").on("click", () => {
         currentScene = 1;
+        d3.select("#sport").style("display", "none"); // Hide sport filter
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
         scenes[currentScene](medalData, selectedYear, selectedRegions);
@@ -56,6 +58,7 @@ d3.csv('./athlete_events.csv').then(data => {
 
     d3.select("#scene3").on("click", () => {
         currentScene = 2;
+        d3.select("#sport").style("display", "inline"); // Show sport filter
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
         const selectedSport = d3.select("#sport").property("value");
@@ -371,6 +374,8 @@ function scene3(data, selectedYear, selectedRegions, selectedSport) {
             .text(d => d);
     }
 
+    d3.select("#sport").property("value", "Gymnastics"); // Default to Gymnastics for Scene 3
+
     svg.append("text")
         .attr("x", (width / 2))             
         .attr("y", margin.top / 2)
@@ -496,13 +501,15 @@ function initControls(data) {
         .attr("value", d => d)
         .property("checked", true);
 
-    // Add the sport filter here for initialization (scene 3 will handle displaying it)
+    // Add the sport filter here for initialization but hide it initially
     d3.select("#controls").append("label")
         .attr("for", "sport")
-        .text("Sport: ");
+        .text("Sport: ")
+        .style("display", "none");
 
     d3.select("#controls").append("select")
         .attr("id", "sport")
+        .style("display", "none")
         .selectAll("option")
         .data([...new Set(data.map(d => d.sport))])
         .enter()
