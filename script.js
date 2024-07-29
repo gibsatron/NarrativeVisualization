@@ -144,9 +144,16 @@ function preprocessData(data) {
 
 function scene1(data, selectedYear, selectedRegions) {
     d3.select("#description").html(`
-        <h2>Scene 1: Gold Medals vs. Number of Participants</h2>
+        <h2>Olympic Games over the Years</h2>
         <p>This scene shows the relationship between the number of participants and the number of gold medals won by each country in a selected year.</p>
         <p>Hover over the circles to see more details about each country.</p>
+        <p>The data goes from the first Olympic Games in 1896 in Athens to 2016 Olympic Games in Rio de Janeiro. Scroll throw the years to see how USA gold medal wins and number of participants changes.</p>
+        <p>United States have participated in the games consistently since their beginning. They have the most gold and total medals overall followed by the Soviet Union and Germany by a significant margin. 
+        The Soviet Union disbanded in 1991 with its former republics competing independently, and Germany was once separated into Western and Eastern Germany which does affect the counts. </p>
+        <p> United States has excelled across a number of events as demonstrated by their high number of participants and gold medals won. They also consistently have one of the highest (if not highest)
+        medal efficiency; thus, on average, more Americans earn at least a Bronze medal than other countries' olympians. </p>
+
+        <p> Country Teams are colored based on their region. Use the Region Filter below to add/remove countries of that region. </p>
     `);
 
     svg.selectAll("*").remove();
@@ -251,9 +258,15 @@ function scene1(data, selectedYear, selectedRegions) {
 // Scene 2 function
 function scene2(data, selectedYear, selectedRegions) {
     d3.select("#description").html(`
-        <h2>Scene 2: Female Participation vs. Number of Participants</h2>
+        <h2>Female Participation in Olympic Games</h2>
         <p>This scene shows the relationship between the number of participants and the percentage of female participants by each country in a selected year.</p>
         <p>Hover over the circles to see more details about each country.</p>
+
+        <p> Women first competed at the 1900 Games in Paris. 
+        The data goes from the first Olympic Games in 1896 in Athens to 2016 Olympic Games in Rio de Janeiro. Scroll throw the years to see how USA's women participation percentage increased over time.</p>
+        <p> The introduction of women into the Olympic Games increased the number of participates, events, and medals won. The domination of American athletes in the Olympics and their impressive medal counts 
+        are due in part to USA's steady increase in female participants. </p>
+        <p> Country Teams are colored based on their region. Use the Region Filter below to add/remove countries of that region. </p>
     `);
 
     svg.selectAll("*").remove();
@@ -355,9 +368,17 @@ function scene2(data, selectedYear, selectedRegions) {
 // Scene 3 function
 function scene3(data, selectedYear, selectedRegions, selectedSport) {
     d3.select("#description").html(`
-        <h2>Scene 3: Medals in ${selectedSport}</h2>
+        <h2>Scene 3: Medals Won in ${selectedSport}</h2>
         <p>This scene shows the number of medals won in ${selectedSport} by each country in a selected year.</p>
         <p>Hover over the circles to see more details about each country.</p>
+
+        <p> 
+        The data goes from the first Olympic Games in 1896 in Athens to 2016 Olympic Games in Rio de Janeiro. Scroll throw the years to see the number of medals won per sport.</p>
+        <p> The Olympics has many sports which each contain various events. The most popular sports such as gymnastics, swimming, and athletics tend to have a significant share of Olympic medals due to their large number of events.
+        These sports have high global participation, and thus are traditionally used as markers of athletic success amongst nations. 
+        The United States consistently rank among the top medal-winning countries in these sports like gymnastics demonstrating their sustained investment and resulting success in sports. </p>
+        <p> Country Teams are colored based on their region. Use the Region Filter below to add/remove countries of that region. </p>
+        <p> Use the bottom filter to select your sport of interest. </p>
     `);
 
     svg.selectAll("*").remove();
