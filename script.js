@@ -69,6 +69,8 @@ d3.csv('./athlete_events.csv').then(data => {
 
     d3.selectAll(".region-filter").on("change", updateScene);
 
+    d3.select("#sport").on("change", updateScene);  // Add this line
+
     function updateScene() {
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
