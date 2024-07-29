@@ -370,7 +370,7 @@ function scene2(data, selectedYear, selectedRegions) {
 // Scene 3 function
 function scene3(data, selectedYear, selectedRegions, selectedSport) {
     d3.select("#description").html(`
-        <h2>Scene 3: Medals Won in ${selectedSport}</h2>
+        <h2>Medals Won in ${selectedSport}</h2>
         <p>This scene shows the number of medals won in ${selectedSport} by each country in a selected year.</p>
         <p>Hover over the circles to see more details about each country.</p>
 
