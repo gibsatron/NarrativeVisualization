@@ -153,6 +153,8 @@ function scene1(data, selectedYear, selectedRegions) {
         <p> United States has excelled across a number of events as demonstrated by their high number of participants and gold medals won. They also consistently have one of the highest (if not highest)
         medal efficiency; thus, on average, more Americans earn at least a Bronze medal than other countries' olympians. </p>
 
+        <p> Some years are empty or missing certain countries due to external events like wars or economic crises </p>
+
         <p> Country Teams are colored based on their region. Use the Region Filter below to add/remove countries of that region. </p>
     `);
 
