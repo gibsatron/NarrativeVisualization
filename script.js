@@ -37,7 +37,8 @@ d3.csv('./athlete_events.csv').then(data => {
 
     const initialYear = +d3.select("#year").property("value");
     const initialRegions = Array.from(d3.selectAll(".region-filter").nodes(), d => d.value);
-    scenes[currentScene](medalData, initialYear, initialRegions);
+    const initialSport = "Gymnastics";
+    scenes[currentScene](medalData, initialYear, initialRegions, initialSport);
 
     d3.select("#scene1").on("click", () => {
         currentScene = 0;
@@ -53,7 +54,6 @@ d3.csv('./athlete_events.csv').then(data => {
         scenes[currentScene](medalData, selectedYear, selectedRegions);
     });
 
-    
     d3.select("#scene3").on("click", () => {
         currentScene = 2;
         const selectedYear = +d3.select("#year").property("value");
@@ -72,6 +72,7 @@ d3.csv('./athlete_events.csv').then(data => {
     function updateScene() {
         const selectedYear = +d3.select("#year").property("value");
         const selectedRegions = Array.from(d3.selectAll(".region-filter").filter(function() { return this.checked; }).nodes(), d => d.value);
+        const selectedSport = currentScene === 2 ? d3.select("#sport").property("value") : null;
         console.log("Selected Year:", selectedYear); // Debugging line
         console.log("Selected Regions:", selectedRegions); // Debugging line
         console.log("Selected Sport:", selectedSport); // Debugging line
@@ -84,50 +85,50 @@ function preprocessData(data) {
 
     data.forEach(d => {
         const noc = d.NOC;
-        const team = d.Team;
+        const team = d.Team; // Extract team (country) name
         if (!countryYearData[noc]) {
-            countryYearData[noc] = { region: countryRegionMap[noc] || "Other", team};
+            countryYearData[noc] = { region: countryRegionMap[noc] || "Other", team, years: {} };
         }
-        if (!countryYearData[noc][d.Year]) {
-            countryYearData[noc][d.Year] = { participants: 0, golds: 0, totalMedals: 0, femaleParticipants: 0 };
+        if (!countryYearData[noc].years[d.Year]) {
+            countryYearData[noc].years[d.Year] = { participants: 0, golds: 0, totalMedals: 0, femaleParticipants: 0, sports: {} };
         }
-        countryYearData[noc][d.Year].participants += 1;
+        countryYearData[noc].years[d.Year].participants += 1;
         if (d.Sex === "F") {
-            countryYearData[noc][d.Year].femaleParticipants += 1;
+            countryYearData[noc].years[d.Year].femaleParticipants += 1;
         }
         if (d.Medal === "Gold") {
-            countryYearData[noc][d.Year].golds += 1;
+            countryYearData[noc].years[d.Year].golds += 1;
         }
         if (d.Medal !== "NA") {
-            countryYearData[noc][d.Year].totalMedals += 1;
+            countryYearData[noc].years[d.Year].totalMedals += 1;
         }
-        if (!countryYearData[noc][d.Year].sports[d.Sport]) {
-            countryYearData[noc][d.Year].sports[d.Sport] = { medals: 0, events: new Set() };
+        if (!countryYearData[noc].years[d.Year].sports[d.Sport]) {
+            countryYearData[noc].years[d.Year].sports[d.Sport] = { medals: 0, events: new Set() };
         }
         if (d.Medal !== "NA") {
-            countryYearData[noc][d.Year].sports[d.Sport].medals += 1;
+            countryYearData[noc].years[d.Year].sports[d.Sport].medals += 1;
         }
-        countryYearData[noc][d.Year].sports[d.Sport].events.add(d.Event);
+        countryYearData[noc].years[d.Year].sports[d.Sport].events.add(d.Event);
     });
 
     const medalData = [];
     for (const noc in countryYearData) {
-        for (const year in countryYearData[noc]) {
-            if (year !== "region") {
+        for (const year in countryYearData[noc].years) {
+            for (const sport in countryYearData[noc].years[year].sports) {
                 medalData.push({
                     noc,
                     country: countryYearData[noc].team,
                     region: countryYearData[noc].region,
                     year: +year,
                     sport,
-                    medals: countryYearData[noc][year].sports[sport].medals,
-                    events: countryYearData[noc][year].sports[sport].events.size,
-                    participants: countryYearData[noc][year].participants,
-                    golds: countryYearData[noc][year].golds,
-                    totalMedals: countryYearData[noc][year].totalMedals,
-                    femaleParticipants: countryYearData[noc][year].femaleParticipants,
-                    medalEfficiency: countryYearData[noc][year].totalMedals / countryYearData[noc][year].participants,
-                    femaleParticipationPercentage: countryYearData[noc][year].femaleParticipants / countryYearData[noc][year].participants * 100
+                    medals: countryYearData[noc].years[year].sports[sport].medals,
+                    events: countryYearData[noc].years[year].sports[sport].events.size,
+                    participants: countryYearData[noc].years[year].participants,
+                    golds: countryYearData[noc].years[year].golds,
+                    totalMedals: countryYearData[noc].years[year].totalMedals,
+                    femaleParticipants: countryYearData[noc].years[year].femaleParticipants,
+                    medalEfficiency: countryYearData[noc].years[year].totalMedals / countryYearData[noc].years[year].participants,
+                    femaleParticipationPercentage: countryYearData[noc].years[year].femaleParticipants / countryYearData[noc].years[year].participants * 100
                 });
             }
         }
@@ -136,9 +137,13 @@ function preprocessData(data) {
     return medalData;
 }
 
-
-
 function scene1(data, selectedYear, selectedRegions) {
+    d3.select("#description").html(`
+        <h2>Scene 1: Gold Medals vs. Number of Participants</h2>
+        <p>This scene shows the relationship between the number of participants and the number of gold medals won by each country in a selected year.</p>
+        <p>Hover over the circles to see more details about each country.</p>
+    `);
+
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -173,7 +178,7 @@ function scene1(data, selectedYear, selectedRegions) {
     const maxParticipants = d3.max(data, d => d.participants);
     const maxGolds = d3.max(data, d => d.golds);
 
-    xScale.domain([0, maxParticipants]);
+    xScale.domain([0, maxParticipants * 1.1]); // Add buffer to the max value
     yScale.domain([0, maxGolds]);
 
     const xAxis = d3.axisBottom(xScale);
@@ -234,10 +239,18 @@ function scene1(data, selectedYear, selectedRegions) {
             .attr("fill", "red")
             .attr("font-size", "12px")
             .attr("text-anchor", "middle")
-            .text(`USA\n Medal Efficiency: (${(usData.medalEfficiency * 100).toFixed(2)}%)`);
+            .text(`USA: ${usData.totalMedals} Medals (${(usData.medalEfficiency * 100).toFixed(2)}%)`);
     }
 }
+
+// Scene 2 function
 function scene2(data, selectedYear, selectedRegions) {
+    d3.select("#description").html(`
+        <h2>Scene 2: Female Participation vs. Number of Participants</h2>
+        <p>This scene shows the relationship between the number of participants and the percentage of female participants by each country in a selected year.</p>
+        <p>Hover over the circles to see more details about each country.</p>
+    `);
+
     svg.selectAll("*").remove();
 
     svg.append("text")
@@ -330,13 +343,18 @@ function scene2(data, selectedYear, selectedRegions) {
             .attr("fill", "red")
             .attr("font-size", "12px")
             .attr("text-anchor", "middle")
-            .text(`USA: \n ${usData.femaleParticipationPercentage.toFixed(2)}% Female Participation`);
+            .text(`USA: ${usData.femaleParticipationPercentage.toFixed(2)}% Female Participation`);
     }
 }
 
-
-    // Scene 3 function
+// Scene 3 function
 function scene3(data, selectedYear, selectedRegions, selectedSport) {
+    d3.select("#description").html(`
+        <h2>Scene 3: Medals in ${selectedSport}</h2>
+        <p>This scene shows the number of medals won in ${selectedSport} by each country in a selected year.</p>
+        <p>Hover over the circles to see more details about each country.</p>
+    `);
+
     svg.selectAll("*").remove();
 
     // Add sport filter dynamically
@@ -490,4 +508,3 @@ function initControls(data) {
         .attr("value", d => d)
         .text(d => d);
 }
-
