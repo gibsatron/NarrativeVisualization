@@ -74,6 +74,7 @@ function preprocessData(data) {
 
     data.forEach(d => {
         const noc = d.NOC;
+        const team = d.Team;
         if (!countryYearData[noc]) {
             countryYearData[noc] = { region: countryRegionMap[noc] || "Other" };
         }
