@@ -76,7 +76,7 @@ function preprocessData(data) {
         const noc = d.NOC;
         const team = d.Team;
         if (!countryYearData[noc]) {
-            countryYearData[noc] = { region: countryRegionMap[noc] || "Other" };
+            countryYearData[noc] = { region: countryRegionMap[noc] || "Other", team};
         }
         if (!countryYearData[noc][d.Year]) {
             countryYearData[noc][d.Year] = { participants: 0, golds: 0, totalMedals: 0, femaleParticipants: 0 };
