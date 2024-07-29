@@ -98,7 +98,7 @@ function preprocessData(data) {
             if (year !== "region") {
                 medalData.push({
                     noc,
-                    country: d.Team,
+                    country: countryYearData[noc].team,
                     region: countryYearData[noc].region,
                     year: +year,
                     participants: countryYearData[noc][year].participants,
